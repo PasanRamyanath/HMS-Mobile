@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../../models/hotel_models.dart';
 import '../tax/tax_engine.dart';
+import '../tenant/tenant_engine.dart';
 
 class DashboardMetrics {
   final int totalRooms;
@@ -49,6 +50,14 @@ class AppSyncClient extends ChangeNotifier {
   void toggleOnlineStatus() {
     _isOnline = !_isOnline;
     notifyListeners();
+  }
+
+  /// Headers attached to every outgoing AppSync request enforcing multi-vendor tenant isolation
+  Map<String, String> getRequestHeaders() {
+    return {
+      'Content-Type': 'application/json',
+      'x-tenant-id': TenantEngine().activeTenantId,
+    };
   }
 
   // In-memory persistent collections

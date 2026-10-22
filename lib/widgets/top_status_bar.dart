@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/l10n/translations.dart';
 import '../core/auth/auth_state.dart';
 import '../core/currency/currency_engine.dart';
+import '../core/tenant/tenant_engine.dart';
 import '../core/api/appsync_client.dart';
 
 class TopStatusBar extends StatelessWidget implements PreferredSizeWidget {
@@ -109,6 +110,39 @@ class TopStatusBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
 
+            const SizedBox(width: 6),
+
+            // Hotel Property / Multi-Vendor Tenant Switcher Pill
+            GestureDetector(
+              onTap: () => _showPropertySwitchModal(context, onRoleChanged),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: isDark ? Colors.white.withAlpha(30) : const Color(0xFFCBD5E1),
+                    width: 0.8,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(CupertinoIcons.building_2_fill, size: 12, color: Color(0xFFD97706)),
+                    const SizedBox(width: 4),
+                    Text(
+                      TenantEngine().currentProperty.name.split(' - ').first.split(' ').take(2).join(' '),
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                      ),
+                    ),
+                    const Icon(CupertinoIcons.chevron_down, size: 10, color: Colors.grey),
+                  ],
+                ),
+              ),
+            ),
+
             const Spacer(),
 
             // Trilingual Language Switcher
@@ -205,6 +239,55 @@ class TopStatusBar extends StatelessWidget implements PreferredSizeWidget {
           ],
         ),
       ),
+    );
+  }
+
+  void _showPropertySwitchModal(BuildContext context, VoidCallback onRefresh) {
+    final tenantEngine = TenantEngine();
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) {
+        return Container(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Row(
+                children: [
+                  Icon(CupertinoIcons.building_2_fill, color: Color(0xFF0F5132)),
+                  SizedBox(width: 8),
+                  Text('Switch Hotel Property (Multi-Tenant)', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                ],
+              ),
+              const SizedBox(height: 6),
+              const Text('Select an active registered hotel vendor across Sri Lanka:', style: TextStyle(fontSize: 12, color: Colors.grey)),
+              const SizedBox(height: 12),
+              ...TenantEngine.registeredProperties.map((prop) {
+                final isCurrent = tenantEngine.activeTenantId == prop.tenantId;
+                return ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: isCurrent ? Theme.of(context).primaryColor.withAlpha(30) : Colors.grey.withAlpha(20),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(CupertinoIcons.bed_double_fill, color: isCurrent ? Theme.of(context).primaryColor : Colors.grey),
+                  ),
+                  title: Text(prop.name, style: TextStyle(fontWeight: isCurrent ? FontWeight.w800 : FontWeight.w600, fontSize: 13)),
+                  subtitle: Text('${prop.city} (${prop.province}) • ${prop.totalRooms} Rooms • ${prop.sltdaRegistrationNumber}', style: const TextStyle(fontSize: 11)),
+                  trailing: isCurrent ? Icon(CupertinoIcons.checkmark_alt, color: Theme.of(context).primaryColor) : null,
+                  onTap: () {
+                    tenantEngine.switchProperty(prop.tenantId);
+                    Navigator.pop(ctx);
+                    onRefresh();
+                  },
+                );
+              }),
+            ],
+          ),
+        );
+      },
     );
   }
 }
