@@ -19,6 +19,9 @@ import '../erp/ayurveda_screen.dart';
 import '../erp/inventory_screen.dart';
 import '../erp/tax_sltda_screen.dart';
 import '../erp/payroll_screen.dart';
+import '../channels/channel_manager_screen.dart';
+import '../activities/excursions_screen.dart';
+import '../staff/my_payslip_screen.dart';
 import '../settings/settings_screen.dart';
 
 class AppShell extends StatefulWidget {
@@ -83,6 +86,15 @@ class _AppShellState extends State<AppShell> {
         break;
       case '/payroll':
         target = const PayrollScreen();
+        break;
+      case '/channels':
+        target = const ChannelManagerScreen();
+        break;
+      case '/excursions':
+        target = const ExcursionsScreen();
+        break;
+      case '/my_payslip':
+        target = const MyPayslipScreen();
         break;
       default:
         target = TouchpointsScreen(onNavigate: _navigateToRoute);
