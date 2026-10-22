@@ -22,6 +22,7 @@ import '../erp/payroll_screen.dart';
 import '../channels/channel_manager_screen.dart';
 import '../activities/excursions_screen.dart';
 import '../staff/my_payslip_screen.dart';
+import '../superadmin/saas_super_admin_screen.dart';
 import '../settings/settings_screen.dart';
 
 class AppShell extends StatefulWidget {
@@ -95,6 +96,9 @@ class _AppShellState extends State<AppShell> {
         break;
       case '/my_payslip':
         target = const MyPayslipScreen();
+        break;
+      case '/super_admin':
+        target = const SaasSuperAdminScreen();
         break;
       default:
         target = TouchpointsScreen(onNavigate: _navigateToRoute);

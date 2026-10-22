@@ -14,7 +14,7 @@ extension UserRoleExtension on UserRole {
   String get displayName {
     switch (this) {
       case UserRole.superAdmin:
-        return 'Super Admin';
+        return 'SaaS Super Admin';
       case UserRole.hotelAdmin:
         return 'General Manager';
       case UserRole.frontDesk:
@@ -73,29 +73,56 @@ class AuthState extends ChangeNotifier {
   factory AuthState() => _instance;
   AuthState._internal();
 
-  UserSession? _currentUser = const UserSession(
-    userId: 'USR-CEY-001',
-    name: 'Chaminda Silva',
-    email: 'gm@ceylonheritage.lk',
-    role: UserRole.hotelAdmin,
-    propertyId: 'PROP-LK-001',
-    propertyName: 'Ceylon Heritage Resort & Spa - Galle Fort',
-  );
+  // Start as unauthenticated (null) so user always lands on the Login Screen
+  UserSession? _currentUser;
 
   bool get isAuthenticated => _currentUser != null;
   UserSession? get currentUser => _currentUser;
   UserRole get currentRole => _currentUser?.role ?? UserRole.guest;
 
-  /// Authenticate with 4-digit PIN (default demo PIN: 4821)
+  /// Authenticate with Staff Email / +94 Mobile Phone and Password
+  bool loginWithCredentials({
+    required String identifier,
+    required String password,
+    UserRole role = UserRole.hotelAdmin,
+  }) {
+    if (identifier.trim().isNotEmpty && password.trim().isNotEmpty) {
+      _currentUser = UserSession(
+        userId: 'USR-${identifier.hashCode.abs() % 10000}',
+        name: identifier.contains('@') ? identifier.split('@').first.toUpperCase() : 'Staff Member',
+        email: identifier.contains('@') ? identifier : 'kasun@ceylonheritage.lk',
+        role: role,
+        propertyId: 'PROP-LK-001',
+        propertyName: role == UserRole.superAdmin
+            ? 'Ceylon Heritage SaaS Cloud HQ (Mumbai ap-south-1)'
+            : 'Ceylon Heritage Resort & Spa - Galle Fort',
+      );
+      notifyListeners();
+      return true;
+    }
+    return false;
+  }
+
+  /// Authenticate with 4-digit PIN (default demo PINs: 1234, 5678, 4321, 8765, 4821, 0000)
   bool loginWithPin(String pin, {UserRole role = UserRole.hotelAdmin}) {
-    if (pin == '4821' || pin == '0000' || pin == '1234') {
+    final validPins = {'1234', '5678', '4321', '8765', '4821', '0000'};
+    if (validPins.contains(pin)) {
+      String name = 'Staff Member (${role.displayName})';
+      if (pin == '1234') role = UserRole.hotelAdmin;
+      if (pin == '5678') role = UserRole.frontDesk;
+      if (pin == '4321') role = UserRole.posCashier;
+      if (pin == '8765') role = UserRole.housekeeping;
+      if (pin == '0000') role = UserRole.superAdmin;
+
       _currentUser = UserSession(
         userId: 'USR-PIN-${pin.hashCode.abs() % 1000}',
-        name: 'Staff Member (${role.displayName})',
+        name: name,
         email: 'staff@ceylonheritage.lk',
         role: role,
         propertyId: 'PROP-LK-001',
-        propertyName: 'Ceylon Heritage Resort & Spa - Galle Fort',
+        propertyName: role == UserRole.superAdmin
+            ? 'Ceylon Heritage SaaS Cloud HQ (Mumbai ap-south-1)'
+            : 'Ceylon Heritage Resort & Spa - Galle Fort',
       );
       notifyListeners();
       return true;
@@ -111,11 +138,14 @@ class AuthState extends ChangeNotifier {
       email: '${newRole.name}@ceylonheritage.lk',
       role: newRole,
       propertyId: 'PROP-LK-001',
-      propertyName: 'Ceylon Heritage Resort & Spa - Galle Fort',
+      propertyName: newRole == UserRole.superAdmin
+          ? 'Ceylon Heritage SaaS Cloud HQ'
+          : 'Ceylon Heritage Resort & Spa - Galle Fort',
     );
     notifyListeners();
   }
 
+  /// Log out from session and return to Login Screen
   void logout() {
     _currentUser = null;
     notifyListeners();

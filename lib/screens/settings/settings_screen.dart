@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/l10n/translations.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/currency/currency_engine.dart';
+import '../../core/auth/auth_state.dart';
 import '../../core/api/appsync_client.dart';
 import '../../widgets/liquid_glass_card.dart';
 
@@ -214,6 +215,42 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       );
                     },
                     child: const Text('Update Endpoint'),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+
+            // Staff Shift Logout Card
+            LiquidGlassCard(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(CupertinoIcons.square_arrow_right, color: Colors.redAccent, size: 18),
+                      SizedBox(width: 8),
+                      Text('Staff Session & Shift Lock', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  const Text('Lock terminal or sign out to the main staff PIN pad & credentials login screen.', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.redAccent,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      icon: const Icon(CupertinoIcons.lock_fill, size: 16),
+                      label: const Text('Sign Out / Lock to Login Screen', style: TextStyle(fontWeight: FontWeight.w800)),
+                      onPressed: () {
+                        AuthState().logout();
+                      },
+                    ),
                   ),
                 ],
               ),

@@ -181,6 +181,27 @@ class TopStatusBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
               ),
             ),
+            const SizedBox(width: 6),
+
+            // Quick Lock / Sign Out Button
+            GestureDetector(
+              onTap: () {
+                auth.logout();
+              },
+              child: Container(
+                padding: const EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  color: Colors.red.withAlpha(isDark ? 40 : 25),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red.withAlpha(80), width: 0.8),
+                ),
+                child: const Icon(
+                  CupertinoIcons.square_arrow_right,
+                  size: 14,
+                  color: Colors.redAccent,
+                ),
+              ),
+            ),
           ],
         ),
       ),

@@ -177,6 +177,14 @@ class TouchpointsScreen extends StatelessWidget {
         routeName: '/my_payslip',
       ),
       TouchpointItem(
+        key: 'super_admin',
+        title: 'SaaS Super Admin',
+        subtitle: 'Multi-Tenant Directory & AWS Free Tier',
+        icon: CupertinoIcons.shield_lefthalf_fill,
+        color: const Color(0xFF9333EA),
+        routeName: '/super_admin',
+      ),
+      TouchpointItem(
         key: 'settings',
         title: AppTranslations.tr('settings'),
         subtitle: 'Ceylon Theme Palettes & Cloud Config',
