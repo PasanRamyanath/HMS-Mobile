@@ -155,6 +155,7 @@ class UserSession {
   final String propertyId;
   final String propertyName;
   final StaffShiftSession? shiftSession;
+  final String pinCode;
 
   const UserSession({
     required this.userId,
@@ -164,7 +165,10 @@ class UserSession {
     required this.propertyId,
     required this.propertyName,
     this.shiftSession,
+    this.pinCode = '1234',
   });
+
+  String get staffName => shiftSession?.staffName ?? name;
 }
 
 /// Web-Parity Role-Based Access Control (RBAC) & Authentication Engine (`src/lib/auth.ts` & `AdminShell.tsx`).
@@ -178,6 +182,17 @@ class AuthState extends ChangeNotifier {
 
   bool get isAuthenticated => _currentUser != null;
   UserSession? get currentUser => _currentUser;
+  UserSession get currentSession =>
+      _currentUser ??
+      const UserSession(
+        userId: 'USR-DEFAULT',
+        name: 'Pasan Ramyanath',
+        email: 'pasan@ceylonheritage.lk',
+        role: UserRole.hotelAdmin,
+        propertyId: 'PROP-LK-001',
+        propertyName: 'Ceylon Heritage Resort & Spa - Galle Fort',
+        pinCode: '1234',
+      );
   UserRole get currentRole => _currentUser?.role ?? UserRole.guest;
   StaffShiftSession? get currentShift => _currentUser?.shiftSession;
 
