@@ -148,29 +148,34 @@ class WebImageThumbnail extends StatelessWidget {
 
 /// Web-Parity Photographic Hero Card (`BaseLandingPortal.tsx` & `LoginView.tsx` & `GuestQrApp.tsx`)
 class WebHeroBannerCard extends StatelessWidget {
-  final String assetPath;
+  final String? assetPath;
+  final String? imagePath;
   final String badgeText;
   final String title;
   final String subtitle;
   final String? rightPillText;
   final double height;
   final Widget? bottomOverlay;
+  final Widget? trailing;
 
   const WebHeroBannerCard({
     super.key,
-    required this.assetPath,
+    this.assetPath,
+    this.imagePath,
     required this.badgeText,
     required this.title,
     required this.subtitle,
     this.rightPillText,
     this.height = 195,
     this.bottomOverlay,
+    this.trailing,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final resolvedPath = imagePath ?? assetPath ?? WebAssets.galleFortHero;
 
     return Container(
       height: height,
@@ -195,7 +200,7 @@ class WebHeroBannerCard extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             Image.asset(
-              assetPath,
+              resolvedPath,
               fit: BoxFit.cover,
               errorBuilder: (ctx, err, stack) {
                 return Container(
@@ -286,6 +291,10 @@ class WebHeroBannerCard extends StatelessWidget {
                             ),
                           ),
                         ),
+                      ],
+                      if (trailing != null) ...[
+                        const SizedBox(width: 8),
+                        trailing!,
                       ],
                     ],
                   ),

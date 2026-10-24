@@ -69,7 +69,7 @@ class _DarkKdsScreenState extends State<DarkKdsScreen> {
           // Chef 1-Tap 86 Stock Drawer Button (`KdsStockToggleDrawer.tsx`)
           IconButton(
             tooltip: 'Chef 1-Tap 86 Stock Drawer',
-            icon: const Icon(CupertinoIcons.inventory_2_outlined, size: 18),
+            icon: const Icon(Icons.inventory_2_outlined, size: 18),
             onPressed: () => _show86StockDrawer(context),
           ),
           // Audio Bell Toggle

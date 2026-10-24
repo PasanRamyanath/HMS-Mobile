@@ -11,6 +11,8 @@ enum UserRole {
   guest,
 }
 
+typedef StaffRole = UserRole;
+
 enum ShiftType {
   morning,
   evening,
@@ -19,6 +21,9 @@ enum ShiftType {
 }
 
 extension UserRoleExtension on UserRole {
+  String get label => displayName;
+  String get webRoleCode => code;
+
   String get displayName {
     switch (this) {
       case UserRole.superAdmin:
@@ -166,6 +171,7 @@ class UserSession {
 class AuthState extends ChangeNotifier {
   static final AuthState _instance = AuthState._internal();
   factory AuthState() => _instance;
+  static AuthState get instance => _instance;
   AuthState._internal();
 
   UserSession? _currentUser;

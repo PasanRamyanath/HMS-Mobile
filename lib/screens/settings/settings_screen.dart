@@ -4,7 +4,8 @@ import '../../core/theme/app_theme.dart';
 import '../../widgets/liquid_glass_card.dart';
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
+  final VoidCallback? onThemeChanged;
+  const SettingsScreen({super.key, this.onThemeChanged});
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();

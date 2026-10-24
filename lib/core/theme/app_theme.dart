@@ -18,6 +18,16 @@ class WebAssets {
   static const String appIcon192 = 'assets/icons/icon-192.png';
   static const String appIcon512 = 'assets/icons/icon-512.png';
 
+  static const String heroSafari = 'assets/images/room-beachfront-pool-villa.jpg';
+  static const String heroAyurveda = 'assets/images/spa-ayurveda-pavilion.jpg';
+  static const String heroSpa = 'assets/images/spa-ayurveda-pavilion.jpg';
+  static const String heroBanquet = 'assets/images/room-heritage-master-suite.jpg';
+  static const String heroBanquets = 'assets/images/room-heritage-master-suite.jpg';
+  static const String heroLobby = 'assets/images/boutique-courtyard-login.jpg';
+  static const String heroResort = 'assets/images/galle-fort-villa-hero.jpg';
+  static const String heroSuite = 'assets/images/room-heritage-master-suite.jpg';
+  static const String dishCrab = 'assets/images/dish-jaffna-crab-hoppers.jpg';
+
   /// Resolves the best matching room photograph for a given room category name.
   static String roomImageForCategory(String categoryName) {
     final lower = categoryName.toLowerCase();
@@ -72,16 +82,53 @@ class CeylonThemePreset {
     required this.accentColor,
     this.icon = Icons.eco_rounded,
   });
+
+  Color get primary => primaryColor;
+  Color get secondary => secondaryColor;
+  Color get accent => accentColor;
 }
 
-/// Reactive notifier so any theme mode or brand color update triggers a full UI rebuild.
+/// Reactive notifier and controller so any theme mode or brand color update triggers a full UI rebuild.
 class ThemeController extends ChangeNotifier {
+  static final ThemeController instance = ThemeController._internal();
+  factory ThemeController() => instance;
+  ThemeController._internal();
+
   void notify() => notifyListeners();
+
+  ThemeMode get themeMode => AppTheme.themeMode;
+  void setThemeMode(ThemeMode mode) {
+    AppTheme.setThemeMode(mode);
+    notifyListeners();
+  }
+
+  static List<CeylonThemePreset> get palettes => AppTheme.presets;
+  CeylonThemePreset get currentPalette => AppTheme.activePreset;
+  void setPalette(String id) {
+    AppTheme.setPreset(id);
+    notifyListeners();
+  }
+}
+
+/// Web-Parity static color constants used across dashboard & ERP screens
+class AppColors {
+  static const Color emerald = Color(0xFF0B6E4F);
+  static const Color gold = Color(0xFFD97706);
+  static const Color rose = Color(0xFFDC2626);
+  static const Color amber = Color(0xFFD97706);
+  static const Color blue = Color(0xFF0284C7);
+  static const Color bgSurface = Color(0xFFFFFFFF);
+  static const Color glassBorder = Color(0xFFE2E8F0);
+  static const Color bgElevated = Color(0xFFF8FAFC);
+  static const Color bgDark = Color(0xFF0B1120);
+  static const Color textPrimary = Color(0xFF0F172A);
+  static const Color textSecondary = Color(0xFF475569);
+  static const Color textMuted = Color(0xFF64748B);
 }
 
 /// Unified Web-Parity Theme Engine (`apple-hig-theme.css` + `muiTheme.ts` + `themeColor.ts`)
 class AppTheme {
-  static final ThemeController notifier = ThemeController();
+  static final ThemeController notifier = ThemeController.instance;
 
   // Web Version Core Neutral & Surface Tokens (Light Mode - Default)
   static const Color lightCanvas = Color(0xFFF4F7F5); // Warm Alabaster (#F4F7F5)
