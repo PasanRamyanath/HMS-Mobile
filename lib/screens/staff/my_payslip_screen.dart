@@ -122,7 +122,7 @@ class _MyPayslipScreenState extends State<MyPayslipScreen>
     );
   }
 
-  Widget _buildPayslipTab(StaffShiftSession session) {
+  Widget _buildPayslipTab(UserSession session) {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 90),
       children: [
