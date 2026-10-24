@@ -847,8 +847,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 10),
 
                   // Footer: Register New Hotel Property (`RegisterStep1.tsx` & `RegisterStep2.tsx`)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       Text(
                         'New hotelier or property manager? ',
