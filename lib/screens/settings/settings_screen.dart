@@ -1,293 +1,486 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import '../../core/l10n/translations.dart';
-import '../../core/theme/app_theme.dart';
-import '../../core/currency/currency_engine.dart';
 import '../../core/auth/auth_state.dart';
-import '../../core/api/appsync_client.dart';
+import '../../core/theme/app_theme.dart';
 import '../../widgets/liquid_glass_card.dart';
 
 class SettingsScreen extends StatefulWidget {
-  final VoidCallback onThemeChanged;
-
-  const SettingsScreen({super.key, required this.onThemeChanged});
+  const SettingsScreen({super.key});
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
-  final TextEditingController _hexController = TextEditingController(text: '#0F5132');
-  final TextEditingController _endpointController = TextEditingController(text: AppSyncClient().graphqlEndpoint);
+class _SettingsScreenState extends State<SettingsScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  final List<bool> _onboardingSteps = [true, true, true, true, false];
+  double _cbslUsdRate = 298.50;
+  double _cbslEurRate = 324.80;
+  bool _payHereLive = true;
+  bool _lankaQrDynamic = true;
+  bool _smsGoEnabled = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 6, vsync: this);
+  }
 
   @override
   void dispose() {
-    _hexController.dispose();
-    _endpointController.dispose();
+    _tabController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final client = AppSyncClient();
-
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: Text(AppTranslations.tr('settings')),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    final themeCtrl = ThemeController.instance;
+    return ListenableBuilder(
+      listenable: Listenable.merge([themeCtrl, AuthState.instance]),
+      builder: (context, _) {
+        return Column(
           children: [
-            // Ceylon Luxury Theme Presets
-            LiquidGlassCard(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(CupertinoIcons.paintbrush_fill, color: Color(0xFF0F5132)),
-                      const SizedBox(width: 8),
-                      const Text(
-                        'Ceylon Luxury Theme Presets',
-                        style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: AppTheme.presets.map((preset) {
-                      final isSelected = AppTheme.activePreset.id == preset.id;
-                      return ChoiceChip(
-                        avatar: Container(
-                          width: 14,
-                          height: 14,
-                          decoration: BoxDecoration(color: preset.primaryColor, shape: BoxShape.circle),
-                        ),
-                        label: Text(preset.name),
-                        selected: isSelected,
-                        onSelected: (val) {
-                          if (val) {
-                            setState(() {
-                              AppTheme.setPreset(preset.id);
-                              _hexController.text = '#${preset.primaryColor.toARGB32().toRadixString(16).substring(2).toUpperCase()}';
-                            });
-                            widget.onThemeChanged();
-                          }
-                        },
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 14),
-
-                  // Custom HEX Color Picker
-                  const Text('Custom Brand HEX Color:', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _hexController,
-                          decoration: const InputDecoration(
-                            hintText: '#0F5132',
-                            isDense: true,
-                            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: theme.primaryColor,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                        ),
-                        onPressed: () {
-                          final text = _hexController.text.replaceAll('#', '').trim();
-                          if (text.length == 6) {
-                            final val = int.tryParse('0xFF$text');
-                            if (val != null) {
-                              AppTheme.setCustomColor(Color(val));
-                              widget.onThemeChanged();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Theme set to #${text.toUpperCase()}')),
-                              );
-                            }
-                          }
-                        },
-                        child: const Text('Apply HEX'),
-                      ),
-                    ],
-                  ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              child: WebHeroBannerCard(
+                imagePath: WebAssets.heroResort,
+                badgeText:
+                    'WEB-PARITY THEME STUDIO • 8 CEYLON PALETTES • RBAC MATRIX',
+                title: 'Property Configuration & Theme Studio',
+                subtitle:
+                    'Switch Light/Dark/System mode, customize 8 Curated Ceylon Luxury Palettes, configure 34.2545% taxes, PayHere/LankaQR, SMSGo.lk, and Staff RBAC.',
+                height: 142,
+              ),
+            ),
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: AppColors.bgSurface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.glassBorder),
+              ),
+              child: TabBar(
+                controller: _tabController,
+                isScrollable: true,
+                tabAlignment: TabAlignment.start,
+                indicatorColor: AppColors.emerald,
+                labelColor: AppColors.emerald,
+                unselectedLabelColor: AppColors.textSecondary,
+                labelStyle:
+                    const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                tabs: const [
+                  Tab(text: '1. Appearance & Palettes'),
+                  Tab(text: '2. 5-Step Onboarding'),
+                  Tab(text: '3. 4-Stage Taxes'),
+                  Tab(text: '4. PayHere & CBSL FX'),
+                  Tab(text: '5. SMSGo.lk Templates'),
+                  Tab(text: '6. Staff RBAC & SaaS'),
                 ],
               ),
             ),
-            const SizedBox(height: 14),
-
-            // Trilingual Language Engine
-            LiquidGlassCard(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            const SizedBox(height: 8),
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
                 children: [
-                  const Row(
-                    children: [
-                      Icon(CupertinoIcons.globe, color: Color(0xFF0284C7)),
-                      SizedBox(width: 8),
-                      Text('System Language / භාෂාව / மொழி', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      _buildLangButton('English (UK/LK)', AppLanguage.en),
-                      const SizedBox(width: 8),
-                      _buildLangButton('සිංහල (Sinhala)', AppLanguage.si),
-                      const SizedBox(width: 8),
-                      _buildLangButton('தமிழ் (Tamil)', AppLanguage.ta),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 14),
-
-            // CBSL FX Central Bank Engine
-            LiquidGlassCard(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Row(
-                    children: [
-                      Icon(CupertinoIcons.money_dollar_circle_fill, color: Color(0xFF0D9488)),
-                      SizedBox(width: 8),
-                      Text('Central Bank of Sri Lanka (CBSL) FX', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Current CBSL Mid-Rate: 1 USD = LKR ${CurrencyEngine.usdToLkrRate.toStringAsFixed(2)}',
-                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text('Automated real-time statutory sync for multi-currency folios and LankaQR settlements.', style: TextStyle(fontSize: 11, color: Colors.grey)),
-                ],
-              ),
-            ),
-            const SizedBox(height: 14),
-
-            // AWS Cloud Backend Diagnostics
-            LiquidGlassCard(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Row(
-                    children: [
-                      Icon(CupertinoIcons.cloud_fill, color: Color(0xFFEA580C)),
-                      SizedBox(width: 8),
-                      Text('AWS AppSync GraphQL Endpoint', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _endpointController,
-                    decoration: const InputDecoration(
-                      labelText: 'AppSync GraphQL URL (ap-south-1)',
-                      isDense: true,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  ElevatedButton(
-                    onPressed: () {
-                      client.setEndpoint(_endpointController.text.trim());
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('AppSync GraphQL Endpoint updated!')),
-                      );
-                    },
-                    child: const Text('Update Endpoint'),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 14),
-
-            // Staff Shift Logout Card
-            LiquidGlassCard(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Row(
-                    children: [
-                      Icon(CupertinoIcons.square_arrow_right, color: Colors.redAccent, size: 18),
-                      SizedBox(width: 8),
-                      Text('Staff Session & Shift Lock', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  const Text('Lock terminal or sign out to the main staff PIN pad & credentials login screen.', style: TextStyle(fontSize: 12, color: Colors.grey)),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.redAccent,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      ),
-                      icon: const Icon(CupertinoIcons.lock_fill, size: 16),
-                      label: const Text('Sign Out / Lock to Login Screen', style: TextStyle(fontWeight: FontWeight.w800)),
-                      onPressed: () {
-                        AuthState().logout();
-                      },
-                    ),
-                  ),
+                  _buildAppearanceTab(themeCtrl),
+                  _buildOnboardingTab(),
+                  _buildTaxesTab(),
+                  _buildPaymentsFxTab(),
+                  _buildSmsTemplatesTab(),
+                  _buildRbacMatrixTab(),
                 ],
               ),
             ),
           ],
-        ),
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildLangButton(String label, AppLanguage lang) {
-    final isSelected = AppTranslations.currentLanguage == lang;
-    return Expanded(
-      child: OutlinedButton(
-        style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          backgroundColor: isSelected ? Theme.of(context).primaryColor.withAlpha(30) : null,
-          side: BorderSide(
-            color: isSelected ? Theme.of(context).primaryColor : Colors.grey.withAlpha(80),
+  Widget _buildAppearanceTab(ThemeController themeCtrl) {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 90),
+      children: [
+        LiquidGlassCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Web-Matched Theme Mode (Light Default + Dark Switcher)',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Matches hms-frontend index.css: Light Mode (#F4F7F5 Warm Stone Canvas + #FFFFFF Cards) or Dark Mode (#0B1120 Obsidian Slate).',
+                style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  ChoiceChip(
+                    avatar: const Icon(Icons.light_mode_rounded, size: 16),
+                    label: const Text('Light Mode (Web Default)'),
+                    selected: themeCtrl.themeMode == ThemeMode.light,
+                    onSelected: (_) => themeCtrl.setThemeMode(ThemeMode.light),
+                  ),
+                  ChoiceChip(
+                    avatar: const Icon(Icons.dark_mode_rounded, size: 16),
+                    label: const Text('Dark Mode (KDS / Night)'),
+                    selected: themeCtrl.themeMode == ThemeMode.dark,
+                    onSelected: (_) => themeCtrl.setThemeMode(ThemeMode.dark),
+                  ),
+                  ChoiceChip(
+                    avatar: const Icon(Icons.brightness_auto_rounded, size: 16),
+                    label: const Text('System Auto'),
+                    selected: themeCtrl.themeMode == ThemeMode.system,
+                    onSelected: (_) => themeCtrl.setThemeMode(ThemeMode.system),
+                  ),
+                ],
+              ),
+            ],
           ),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
-        onPressed: () {
-          setState(() {
-            AppTranslations.setLanguage(lang);
-          });
-          widget.onThemeChanged();
-        },
-        child: Text(
-          label.split(' ')[0],
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-            color: isSelected ? Theme.of(context).primaryColor : null,
+        const SizedBox(height: 12),
+        LiquidGlassCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                '8 Curated Ceylon Luxury Color Palettes',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Instant live brand accent adaptation across all buttons, badges, charts, and cards.',
+                style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+              ),
+              const SizedBox(height: 12),
+              ...ThemeController.palettes.map((p) {
+                final active = themeCtrl.currentPalette.id == p.id;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () => themeCtrl.setPalette(p.id),
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: active
+                            ? p.primary.withValues(alpha: 0.12)
+                            : AppColors.bgElevated,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: active ? p.primary : AppColors.glassBorder,
+                          width: active ? 1.8 : 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 28,
+                            height: 28,
+                            decoration: BoxDecoration(
+                              color: p.primary,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            width: 20,
+                            height: 20,
+                            decoration: BoxDecoration(
+                              color: p.accent,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  p.name,
+                                  style: const TextStyle(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w800),
+                                ),
+                                Text(
+                                  p.subtitle,
+                                  style: TextStyle(
+                                      fontSize: 11,
+                                      color: AppColors.textSecondary),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (active)
+                            Icon(Icons.check_circle_rounded,
+                                color: p.primary, size: 20),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ],
           ),
         ),
-      ),
+      ],
+    );
+  }
+
+  Widget _buildOnboardingTab() {
+    final steps = [
+      '1. SLTDA Registration Certificate & IRD VAT/TIN Verified',
+      '2. Room Categories, Seasonal Tariffs & Meal Plan Supplements (RO/BB/HB/FB/AI)',
+      '3. Sri Lanka 4-Stage Cascading Tax Formula (10% SC + 1% TDL + 2.5% SSCL + 18% VAT)',
+      '4. Channex.io OTA Bridge (Booking.com / Agoda / Expedia) Live Mapping',
+      '5. LankaPay Dynamic QR & PayHere IPG Merchant Keys Activated',
+    ];
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 90),
+      children: [
+        LiquidGlassCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                '5-Step Property Onboarding & SLTDA Readiness Checklist',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: 8),
+              ...List.generate(steps.length, (i) {
+                return CheckboxListTile(
+                  contentPadding: EdgeInsets.zero,
+                  value: _onboardingSteps[i],
+                  activeColor: AppColors.emerald,
+                  title: Text(steps[i], style: const TextStyle(fontSize: 12)),
+                  onChanged: (v) =>
+                      setState(() => _onboardingSteps[i] = v ?? false),
+                );
+              }),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTaxesTab() {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 90),
+      children: [
+        LiquidGlassCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: const [
+              Text(
+                'Sri Lanka Statutory Cascading Tax Rules (34.2545%)',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+              ),
+              SizedBox(height: 8),
+              Text(
+                '• Stage 1a: 10.00% Service Charge (90% Staff Pool / 10% Breakage Retention)\n'
+                '• Stage 1b: 1.00% SLTDA Tourism Development Levy (TDL)\n'
+                '• Stage 2: 2.50% SSCL on Subtotal 1 (= 2.7750% effective)\n'
+                '• Stage 3: 18.00% IRD VAT on Subtotal 2 (= 20.4795% effective)\n'
+                '• Combined Effective Tax Multiplier: 1.342545x (++++ Pricing)',
+                style: TextStyle(fontSize: 11.5, height: 1.5),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPaymentsFxTab() {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 90),
+      children: [
+        LiquidGlassCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'PayHere IPG, LankaQR & CBSL Foreign Currency Rates',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+              ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('PayHere Sri Lanka Multi-Currency Gateway',
+                    style: TextStyle(fontSize: 12.5)),
+                value: _payHereLive,
+                activeColor: AppColors.emerald,
+                onChanged: (v) => setState(() => _payHereLive = v),
+              ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('LankaQR Central Bank Dynamic EMVCo QR',
+                    style: TextStyle(fontSize: 12.5)),
+                value: _lankaQrDynamic,
+                activeColor: AppColors.emerald,
+                onChanged: (v) => setState(() => _lankaQrDynamic = v),
+              ),
+              const Divider(),
+              Text(
+                  'CBSL Daily Buying Rate (USD -> LKR): ${_cbslUsdRate.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                      fontSize: 12, fontWeight: FontWeight.w700)),
+              Slider(
+                value: _cbslUsdRate,
+                min: 280,
+                max: 330,
+                activeColor: AppColors.emerald,
+                onChanged: (v) => setState(() => _cbslUsdRate = v),
+              ),
+              Text(
+                  'CBSL Daily Buying Rate (EUR -> LKR): ${_cbslEurRate.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                      fontSize: 12, fontWeight: FontWeight.w700)),
+              Slider(
+                value: _cbslEurRate,
+                min: 300,
+                max: 360,
+                activeColor: AppColors.emerald,
+                onChanged: (v) => setState(() => _cbslEurRate = v),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSmsTemplatesTab() {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 90),
+      children: [
+        LiquidGlassCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text(
+                  'SMSGo.lk / Dialog Rich Communications Gateway',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
+                ),
+                subtitle: const Text('Sender ID: CEYLONHMS (Trilingual UTF-8)',
+                    style: TextStyle(fontSize: 11)),
+                value: _smsGoEnabled,
+                activeColor: AppColors.emerald,
+                onChanged: (v) => setState(() => _smsGoEnabled = v),
+              ),
+              const Divider(),
+              const Text(
+                '• Booking Confirmation (EN/SI/TA): "Ayubowan {guest_name}! Your stay at Ceylon Heritage Resort ({check_in}) is confirmed. Ref: {bk_id}"\n'
+                '• Pre-Arrival Express Check-In Link: "Skip the front desk queue! Upload your NIC/Passport: https://ceylonhms.lk/checkin/{token}"\n'
+                '• Folio E-Receipt & Airport Chauffeur Dispatch Alert',
+                style: TextStyle(fontSize: 11.5, height: 1.5),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRbacMatrixTab() {
+    final activeRole = AuthState.instance.currentRole;
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 90),
+      children: [
+        LiquidGlassCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Interactive Role-Based Access Control (RBAC) Matrix',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Tap any role below to switch the live session and test route-level permissions across the mobile app.',
+                style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+              ),
+              const SizedBox(height: 12),
+              ...StaffRole.values.map((role) {
+                final selected = role == activeRole;
+                final perms = AuthState.rolePermissions[role] ?? [];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(10),
+                    onTap: () => AuthState.instance.switchRole(role),
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: selected
+                            ? AppColors.emerald.withValues(alpha: 0.12)
+                            : AppColors.bgElevated,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: selected
+                              ? AppColors.emerald
+                              : AppColors.glassBorder,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                selected
+                                    ? Icons.verified_user_rounded
+                                    : Icons.badge_outlined,
+                                size: 18,
+                                color: selected
+                                    ? AppColors.emerald
+                                    : AppColors.textSecondary,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  '${role.label} (${role.webRoleCode})',
+                                  style: const TextStyle(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w800),
+                                ),
+                              ),
+                              if (selected)
+                                const Text(
+                                  'ACTIVE SESSION',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.emerald,
+                                  ),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Permissions: ${perms.join(" • ")}',
+                            style: TextStyle(
+                                fontSize: 10.5,
+                                color: AppColors.textSecondary),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

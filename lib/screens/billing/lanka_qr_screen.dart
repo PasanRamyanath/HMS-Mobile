@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../../core/currency/currency_engine.dart';
 import '../../core/lanka_qr/lanka_qr_generator.dart';
+import '../../core/theme/app_theme.dart';
 import '../../widgets/liquid_glass_card.dart';
+import '../../widgets/metric_badge.dart';
 
+/// Web-Parity Dynamic LankaQR EMVCo Checkout Screen (`FrontDeskLankaQrModal.tsx` & `GuestLankaQrPay.tsx`).
 class LankaQrScreen extends StatelessWidget {
   final double amountLkr;
   final String folioReference;
@@ -36,42 +39,24 @@ class LankaQrScreen extends StatelessWidget {
         title: const Text('LankaQR Dynamic Checkout'),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        padding: const EdgeInsets.fromLTRB(18, 16, 18, 28),
         child: Column(
           children: [
-            // CBSL LankaQR Header Card
             LiquidGlassCard(
               padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFEA580C).withAlpha(25),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: const Color(0xFFEA580C)),
-                        ),
-                        child: const Row(
-                          children: [
-                            Icon(CupertinoIcons.qrcode, color: Color(0xFFEA580C), size: 16),
-                            SizedBox(width: 6),
-                            Text(
-                              'LankaQR CBSL Certified',
-                              style: TextStyle(color: Color(0xFFEA580C), fontWeight: FontWeight.w800, fontSize: 12),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                  const MetricBadge(
+                    label: 'LankaQR CBSL Certified • EMVCo Dynamic',
+                    color: Color(0xFFEA580C),
+                    icon: CupertinoIcons.qrcode,
                   ),
                   const SizedBox(height: 14),
                   Text(
                     CurrencyEngine.formatLkr(amountLkr),
+                    textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 32,
+                      fontSize: 30,
                       fontWeight: FontWeight.w900,
                       color: theme.primaryColor,
                       letterSpacing: -0.5,
@@ -79,23 +64,25 @@ class LankaQrScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'USD ~${CurrencyEngine.lkrToUsd(amountLkr).toStringAsFixed(2)} at CBSL Mid-Rate',
+                    'Approx. USD ${CurrencyEngine.lkrToUsd(amountLkr).toStringAsFixed(2)} at CBSL Mid-Rate (1:${CurrencyEngine.usdToLkrRate.toStringAsFixed(1)})',
+                    textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 12,
-                      color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                      color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
                     ),
                   ),
                   const SizedBox(height: 20),
 
-                  // QR Code Canvas
+                  // Crisp White QR Code Canvas
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: AppTheme.lightBorder),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withAlpha(20),
+                          color: Colors.black.withAlpha(18),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),
@@ -104,45 +91,58 @@ class LankaQrScreen extends StatelessWidget {
                     child: QrImageView(
                       data: qrPayload,
                       version: QrVersions.auto,
-                      size: 200.0,
+                      size: 196.0,
                       backgroundColor: Colors.white,
                     ),
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Ref: $folioReference | Guest: $guestName',
-                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
-                  ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    'Scan using Commercial Bank COMBANK Q+, BOC SmartPay, Sampath WePay, HNB SOLO, or any LankaQR compliant app.',
+                    'Ref: $folioReference • Guest: $guestName',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 11, color: Colors.grey),
+                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5),
+                  ),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    alignment: WrapAlignment.center,
+                    children: const [
+                      MetricBadge(label: 'COMBANK Q+', color: Color(0xFF0284C7)),
+                      MetricBadge(label: 'BOC SmartPay', color: Color(0xFFD97706)),
+                      MetricBadge(label: 'Sampath WePay', color: Color(0xFFEA580C)),
+                      MetricBadge(label: 'HNB SOLO', color: Color(0xFF2563EB)),
+                      MetricBadge(label: 'FriMi', color: Color(0xFF7C3AED)),
+                    ],
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 18),
 
             // Simulate Successful Scan Button
             SizedBox(
               width: double.infinity,
-              height: 52,
+              height: 50,
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF10B981),
+                  backgroundColor: const Color(0xFF16A34A),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 ),
-                icon: const Icon(CupertinoIcons.checkmark_seal_fill),
-                label: const Text('Simulate Bank Settlement (CEFT Instant)', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+                icon: const Icon(CupertinoIcons.checkmark_seal_fill, size: 18),
+                label: const Text(
+                  'Simulate Bank Settlement (CEFT Instant)',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14.5),
+                ),
                 onPressed: () {
                   onPaymentConfirmed();
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('LankaQR Payment Approved via LankaClear CEFT!'),
-                      backgroundColor: Color(0xFF10B981),
+                      backgroundColor: Color(0xFF16A34A),
                     ),
                   );
                 },
